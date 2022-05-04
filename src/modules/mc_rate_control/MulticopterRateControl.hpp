@@ -134,7 +134,7 @@ private:
 
 	matrix::Vector3f _rates_sp;			/**< angular rates setpoint */
 
-	float		_thrust_sp{0.0f};		/**< thrust setpoint */
+	matrix::Vector3f _thrust_sp{};			/**< thrust setpoint */
 
 	hrt_abstime _last_run{0};
 
