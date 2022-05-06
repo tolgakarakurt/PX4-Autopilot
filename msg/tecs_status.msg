@@ -40,5 +40,6 @@ float32 pitch_integ
 
 float32 throttle_sp
 float32 pitch_sp_rad
+float32 throttle_cruise
 
 uint8 mode

@@ -95,6 +95,7 @@ public:
 	float get_throttle_setpoint() { return _last_throttle_setpoint; }
 	float get_pitch_setpoint() { return _last_pitch_setpoint; }
 	float get_speed_weight() { return _pitch_speed_weight; }
+	float get_throttle_cruise() { return _throttle_cruise; }
 
 	void reset_state() { _states_initialized = false; }
 
@@ -272,6 +273,7 @@ private:
 	float _STE_rate_min{0.0f};					///< specific total energy rate lower limit acheived when throttle is at _throttle_setpoint_min (m**2/sec**3)
 	float _throttle_setpoint_max{0.0f};				///< normalised throttle upper limit
 	float _throttle_setpoint_min{0.0f};				///< normalised throttle lower limit
+	float _throttle_cruise{0.0f};					///< feedforward throttle applied when controller error is zero, is provided externally and can change in flight
 	float _pitch_setpoint_max{0.5f};				///< pitch demand upper limit (rad)
 	float _pitch_setpoint_min{-0.5f};				///< pitch demand lower limit (rad)
 
@@ -337,7 +339,7 @@ private:
 	/**
 	 * Update throttle setpoint
 	 */
-	void _update_throttle_setpoint(float throttle_cruise);
+	void _update_throttle_setpoint();
 
 	/**
 	 * Detect an uncommanded descent

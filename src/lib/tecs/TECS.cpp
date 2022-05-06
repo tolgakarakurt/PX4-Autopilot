@@ -242,7 +242,7 @@ void TECS::_update_energy_estimates()
 	_SKE_rate = _tas_state * _tas_rate_filtered;// kinetic energy rate of change
 }
 
-void TECS::_update_throttle_setpoint(const float throttle_cruise)
+void TECS::_update_throttle_setpoint()
 {
 	// Calculate demanded rate of change of total energy, respecting vehicle limits.
 	// We will constrain the value below.
@@ -277,11 +277,11 @@ void TECS::_update_throttle_setpoint(const float throttle_cruise)
 
 		if (STE_rate_setpoint >= 0) {
 			// throttle is between cruise and maximum
-			throttle_predicted = throttle_cruise + STE_rate_setpoint / _STE_rate_max * (_throttle_setpoint_max - throttle_cruise);
+			throttle_predicted = _throttle_cruise + STE_rate_setpoint / _STE_rate_max * (_throttle_setpoint_max - _throttle_cruise);
 
 		} else {
 			// throttle is between cruise and minimum
-			throttle_predicted = throttle_cruise + STE_rate_setpoint / _STE_rate_min * (_throttle_setpoint_min - throttle_cruise);
+			throttle_predicted = _throttle_cruise + STE_rate_setpoint / _STE_rate_min * (_throttle_setpoint_min - _throttle_cruise);
 
 		}
 
@@ -566,6 +566,7 @@ void TECS::update_pitch_throttle(float pitch, float baro_altitude, float hgt_set
 	_pitch_setpoint_max = pitch_limit_max;
 	_pitch_setpoint_min = pitch_limit_min;
 	_climbout_mode_active = climb_out_setpoint;
+	_throttle_cruise = throttle_cruise;
 
 	// Initialize selected states and variables as required
 	_initialize_states(pitch, throttle_cruise, baro_altitude, pitch_min_climbout, eas_to_tas);
@@ -600,7 +601,7 @@ void TECS::update_pitch_throttle(float pitch, float baro_altitude, float hgt_set
 	_update_energy_estimates();
 
 	// Calculate the throttle demand
-	_update_throttle_setpoint(throttle_cruise);
+	_update_throttle_setpoint();
 
 	// Calculate the pitch demand
 	_update_pitch_setpoint();
