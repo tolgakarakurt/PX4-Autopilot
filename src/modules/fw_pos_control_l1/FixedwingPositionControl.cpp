@@ -258,16 +258,27 @@ FixedwingPositionControl::vehicle_command_poll()
 				abort_landing(true);
 			}
 
-		} else if ((vehicle_command.command == vehicle_command_s::VEHICLE_CMD_DO_CHANGE_SPEED)
-			   && (static_cast<uint8_t>(vehicle_command.param1 + .5f) == vehicle_command_s::SPEED_TYPE_AIRSPEED)
-			   && (vehicle_command.param2 > 0.f)) {
+		} else if (vehicle_command.command == vehicle_command_s::VEHICLE_CMD_DO_CHANGE_SPEED) {
 
-			if (_control_mode_current == FW_POSCTRL_MODE_AUTO) {
-				_pos_sp_triplet.current.cruising_speed = vehicle_command.param2;
+			if ((static_cast<uint8_t>(vehicle_command.param1 + .5f) == vehicle_command_s::SPEED_TYPE_AIRSPEED)) {
+				if (vehicle_command.param2 > 0.f) {
+					if (_control_mode_current == FW_POSCTRL_MODE_AUTO) {
+						_pos_sp_triplet.current.cruising_speed = vehicle_command.param2;
 
-			} else if (_control_mode_current == FW_POSCTRL_MODE_MANUAL_ALTITUDE
-				   || _control_mode_current == FW_POSCTRL_MODE_MANUAL_POSITION) {
-				_commanded_airspeed_setpoint = vehicle_command.param2;
+					} else if (_control_mode_current == FW_POSCTRL_MODE_MANUAL_ALTITUDE
+						   || _control_mode_current == FW_POSCTRL_MODE_MANUAL_POSITION) {
+						_commanded_airspeed_setpoint = vehicle_command.param2;
+					}
+
+				} else if (vehicle_command.param3 > 0.f) {
+					if (_control_mode_current == FW_POSCTRL_MODE_AUTO) {
+						_pos_sp_triplet.current.cruising_throttle = vehicle_command.param3 * 0.01f;
+
+					} else if (_control_mode_current == FW_POSCTRL_MODE_MANUAL_ALTITUDE
+						   || _control_mode_current == FW_POSCTRL_MODE_MANUAL_POSITION) {
+						_commanded_cruise_throttle = vehicle_command.param3 * 0.01f;
+					}
+				}
 			}
 
 		}
@@ -984,13 +995,15 @@ FixedwingPositionControl::control_auto_fixed_bank_alt_hold(const hrt_abstime &no
 {
 	// only control altitude and airspeed ("fixed-bank loiter")
 
+	float cruise_throttle = _param_fw_thr_cruise.get();
+
 	tecs_update_pitch_throttle(now, _current_altitude,
 				   _param_fw_airspd_trim.get(),
 				   radians(_param_fw_p_lim_min.get()),
 				   radians(_param_fw_p_lim_max.get()),
 				   _param_fw_thr_min.get(),
 				   _param_fw_thr_max.get(),
-				   _param_fw_thr_cruise.get(),
+				   cruise_throttle,
 				   false,
 				   _param_fw_p_lim_min.get());
 
@@ -1019,13 +1032,15 @@ FixedwingPositionControl::control_auto_descend(const hrt_abstime &now)
 	// but not letting it drift too far away.
 	const float descend_rate = -0.5f;
 
+	float cruise_throttle = _param_fw_thr_cruise.get();
+
 	tecs_update_pitch_throttle(now, _current_altitude,
 				   _param_fw_airspd_trim.get(),
 				   radians(_param_fw_p_lim_min.get()),
 				   radians(_param_fw_p_lim_max.get()),
 				   _param_fw_thr_min.get(),
 				   _param_fw_thr_max.get(),
-				   _param_fw_thr_cruise.get(),
+				   cruise_throttle,
 				   false,
 				   _param_fw_p_lim_min.get(),
 				   false,
@@ -2087,13 +2102,19 @@ FixedwingPositionControl::control_manual_altitude(const hrt_abstime &now, const 
 		throttle_max = 0.0f;
 	}
 
+	float cruise_throttle = _param_fw_thr_cruise.get();
+
+	if (PX4_ISFINITE(_commanded_cruise_throttle)) {
+		cruise_throttle = _commanded_cruise_throttle;
+	}
+
 	tecs_update_pitch_throttle(now, altitude_sp_amsl,
 				   altctrl_airspeed,
 				   radians(_param_fw_p_lim_min.get()),
 				   radians(_param_fw_p_lim_max.get()),
 				   _param_fw_thr_min.get(),
 				   throttle_max,
-				   _param_fw_thr_cruise.get(),
+				   cruise_throttle,
 				   false,
 				   pitch_limit_min,
 				   false,
@@ -2226,13 +2247,19 @@ FixedwingPositionControl::control_manual_position(const hrt_abstime &now, const 
 		}
 	}
 
+	float cruise_throttle = _param_fw_thr_cruise.get();
+
+	if (PX4_ISFINITE(_commanded_cruise_throttle)) {
+		cruise_throttle = _commanded_cruise_throttle;
+	}
+
 	tecs_update_pitch_throttle(now, altitude_sp_amsl,
 				   target_airspeed,
 				   radians(_param_fw_p_lim_min.get()),
 				   radians(_param_fw_p_lim_max.get()),
 				   _param_fw_thr_min.get(),
 				   throttle_max,
-				   _param_fw_thr_cruise.get(),
+				   cruise_throttle,
 				   false,
 				   pitch_limit_min,
 				   false,
