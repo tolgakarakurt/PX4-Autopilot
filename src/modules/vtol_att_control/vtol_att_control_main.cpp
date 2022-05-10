@@ -230,13 +230,13 @@ VtolAttitudeControl::parameters_update()
 
 		// update parameters from storage
 		updateParams();
-	}
 
-	if (_vtol_type != nullptr) {
-		_vtol_type->parameters_update();
-	}
+		if (_vtol_type != nullptr) {
+			_vtol_type->parameters_update();
+		}
 
-	_vtol_vehicle_status.fw_permanent_stab = _param_vt_fw_perm_stab.get();
+		_vtol_vehicle_status.fw_permanent_stab = _param_vt_fw_perm_stab.get();
+	}
 }
 
 void
