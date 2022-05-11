@@ -37,22 +37,31 @@
  * Parameters for follow target mode
  *
  * @author Jimmy Johnson <catch22@fastmail.net>
- */
-
-/*
- * Follow target parameters
+ * @author Junwoo Hwang <junwoo091400@gmail.com>
  */
 
 /**
- * Minimum follow target altitude
+ * Responsiveness to target movement in Target Estimator
  *
- * The minimum height in meters relative to home for following a target
+ * lower values increase the responsiveness to changing position, but also ignore less noise
+ *
+ * @min 0.0
+ * @max 1.0
+ * @decimal 2
+ * @group Follow target
+ */
+PARAM_DEFINE_FLOAT(FLW_TGT_RS, 0.1f);
+
+/**
+ * Follow target height
+ *
+ * Following height above the target
  *
  * @unit m
  * @min 8.0
  * @group Follow target
  */
-PARAM_DEFINE_FLOAT(NAV_MIN_FT_HT, 8.0f);
+PARAM_DEFINE_FLOAT(FLW_TGT_HT, 8.0f);
 
 /**
  * Distance to follow target from
@@ -63,40 +72,28 @@ PARAM_DEFINE_FLOAT(NAV_MIN_FT_HT, 8.0f);
  * @min 1.0
  * @group Follow target
  */
-PARAM_DEFINE_FLOAT(NAV_FT_DST, 8.0f);
+PARAM_DEFINE_FLOAT(FLW_TGT_DST, 8.0f);
 
 /**
- * Side to follow target from
+ * Perspective to follow target from
  *
  * The side to follow the target from
- * none         = 0
- * behind       = 1
- * front        = 2
- * front right  = 3
- * front left   = 4
- * mid right    = 5
- * mid left     = 6
- * behind right = 7
- * behind left  = 8
+ *
+ * @value 0 None (default, Behind)
+ * @value 1 Behind
+ * @value 2 front
+ * @value 3 front right
+ * @value 4 front left
+ * @value 5 mid right
+ * @value 6 mid left
+ * @value 7 behind right
+ * @value 8 behind left
  *
  * @min 0
  * @max 8
  * @group Follow target
  */
-PARAM_DEFINE_INT32(NAV_FT_FS, 1);
-
-/**
- * Dynamic filtering algorithm responsiveness to target movement
- *
- * lower values increase the responsiveness to changing long lat
- * but also ignore less noise
- *
- * @min 0.0
- * @max 1.0
- * @decimal 2
- * @group Follow target
- */
-PARAM_DEFINE_FLOAT(NAV_FT_RS, 0.1f);
+PARAM_DEFINE_INT32(FLW_TGT_FP, 1);
 
 /**
  * Altitude control mode
@@ -106,39 +103,22 @@ PARAM_DEFINE_FLOAT(NAV_FT_RS, 0.1f);
  * the target's altitude, the follow altitude NAV_MIN_FT_HT should be high enough
  * to prevent terrain collisions due to GPS inaccuracies of the target.
  *
- * TODO: Add option for 2D tracking + terrain following
- *
- * @value 0 Maintain constant altitude and track XY position only (2D tracking)
- * @value 1 Track target's altitude (3D tracking)
+ * @value 0 2D Tracking: Maintain constant altitude relative to home and track XY position only
+ * @value 1 2D + Terrain: Mantain constant altitude relative to terrain below and track XY position
+ * @value 2 3D Tracking: Track target's altitude (be aware that GPS altitude bias usually makes this useless)
  * @group Follow target
  */
-PARAM_DEFINE_INT32(NAV_FT_ALT_M, 0);
+PARAM_DEFINE_INT32(FLW_TGT_ALT_M, 0);
 
 /**
- * Gimbal tracking mode
+ * Maximum tangential velocity setting for generating the follow orbit trajectory
  *
- * @value 0 2D tracking: Point at target XY coordinates, and at ground Z coordinate
- * @value 1 2D tracking with terrain: Point at target XY coordinates, and at terrain Z coordinate
- * @value 2 3D tracking: Point at target XYZ coordinates
+ * This is the maximum tangential velocity the drone will circle around the target whenever
+ * an orbit angle setpoint changes. Higher value means more aggressive follow behavior.
+ *
+ * @min 0.0
+ * @max 20.0
+ * @decimal 1
  * @group Follow target
  */
-PARAM_DEFINE_INT32(NAV_FT_GMB_M, 0);
-
-/**
- * Compensate filter delay
- *
- * The follow flight mode is estimating and filtering the target's position
- * and velocity in order to achieve a smoother tracking behavior. The filtering
- * introduces some delay which is noticable when the target is moving at higher
- * speeds, such as the case for bicycles and cars. For this high-speed scenario
- * the delay compensation can be enabled, which extrapolates the filtered position
- * in order to compensate for the filter delay.
- * This setting should not be used when the target is moving slowly, for example
- * when it's a pedestrian, as it will then emphasize the measurement noise instead
- * and cause unnecessary movement for the drone.
- *
- * @value 0 disabled
- * @value 1 enabled
- * @group Follow target
- */
-PARAM_DEFINE_INT32(NAV_FT_DELC, 0);
+PARAM_DEFINE_FLOAT(FLW_TGT_MAX_VEL, 5.0f);
